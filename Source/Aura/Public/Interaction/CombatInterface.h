@@ -20,10 +20,17 @@ class AURA_API ICombatInterface
 {
 	GENERATED_BODY()
 
+	// Add interface functions to this class, this is the class that will be inherited to implement this interface.
 public:
 	virtual int32 GetPlayerLevel();
 	virtual FVector GetCombatSocketLocation();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void UpdateFacingTarget(const FVector& Target);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	UAnimMontage* GetHitReactMontage();
+
+	virtual void Die() = 0;
+	
 };
