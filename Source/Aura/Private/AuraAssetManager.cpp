@@ -2,7 +2,6 @@
 
 
 #include "AuraAssetManager.h"
-
 #include "AbilitySystemGlobals.h"
 #include "AuraGameplayTags.h"
 
