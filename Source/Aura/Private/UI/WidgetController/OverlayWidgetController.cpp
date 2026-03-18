@@ -1,9 +1,9 @@
 // Copyright Sovreighn Gaming
 
-
 #include "UI/WidgetController/OverlayWidgetController.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
+#include "AbilitySystem/Data/AbilityInfo.h"
 
 void UOverlayWidgetController::BroadcastInitialValues()
 {
@@ -21,7 +21,7 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
 		AuraAttributeSet->GetHealthAttribute()).AddLambda(
-		[this](const FOnAttributeChangeData& Data)
+			[this](const FOnAttributeChangeData& Data)
 			{
 				OnHealthChanged.Broadcast(Data.NewValue);
 			}
@@ -29,7 +29,7 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
 	AuraAttributeSet->GetMaxHealthAttribute()).AddLambda(
-		[this](const FOnAttributeChangeData& Data)
+			[this](const FOnAttributeChangeData& Data)
 			{
 				OnMaxHealthChanged.Broadcast(Data.NewValue);
 			}
@@ -37,7 +37,7 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
 	AuraAttributeSet->GetManaAttribute()).AddLambda(
-		[this](const FOnAttributeChangeData& Data)
+			[this](const FOnAttributeChangeData& Data)
 			{
 				OnManaChanged.Broadcast(Data.NewValue);
 			}
@@ -45,14 +45,25 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
 	AuraAttributeSet->GetMaxManaAttribute()).AddLambda(
-		[this](const FOnAttributeChangeData& Data)
+			[this](const FOnAttributeChangeData& Data)
 			{
 				OnMaxManaChanged.Broadcast(Data.NewValue);
 			}
 		);
 
-	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->EffectAssetTags.AddLambda(
-		[this](const FGameplayTagContainer& AssetTags)
+	if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent))
+	{
+		if (AuraASC->bStartupAbilitiesGiven)
+		{
+			OnInitializeStartupAbilities(AuraASC);
+		}
+		else
+		{
+			AuraASC->AbilitiesGivenDelegate.AddUObject(this, &UOverlayWidgetController::OnInitializeStartupAbilities);
+		}
+		
+		AuraASC->EffectAssetTags.AddLambda(
+			[this](const FGameplayTagContainer& AssetTags)
 			{
 				for (const FGameplayTag& Tag : AssetTags)
 				{
@@ -66,4 +77,20 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 				}
 			}
 		);
+	}
+	
+}
+
+void UOverlayWidgetController::OnInitializeStartupAbilities(UAuraAbilitySystemComponent* AuraAbilitySystemComponent)
+{
+	if (!AuraAbilitySystemComponent->bStartupAbilitiesGiven) { return; }
+
+	FForEachAbility BroadcastDelegate;
+	BroadcastDelegate.BindLambda([this, AuraAbilitySystemComponent](const FGameplayAbilitySpec& AbilitySpec)
+	{
+		FAuraAbilityInfo Info = AbilityInfo->FindAbilityInfoForTag(AuraAbilitySystemComponent->GetAbilityTagFromSpec(AbilitySpec));
+		Info.InputTag = AuraAbilitySystemComponent->GetInputTagFromSpec(AbilitySpec);
+		AbilityInfoDelegate.Broadcast(Info);
+	});
+	AuraAbilitySystemComponent->ForEachAbility(BroadcastDelegate);
 }
