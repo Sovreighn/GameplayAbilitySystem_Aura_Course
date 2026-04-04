@@ -8,10 +8,11 @@ FAuraGameplayTags FAuraGameplayTags::GameplayTags;
 void FAuraGameplayTags::InitializeNativeGameplayTags()
 {
 	// Primary Attributes
+	
 	GameplayTags.Attributes_Primary_Strength = UGameplayTagsManager::Get().AddNativeGameplayTag(
-		FName("Attributes.Primary.Strength"),
-		FString("Increases Physical Damage")
-		);
+	FName("Attributes.Primary.Strength"),
+	FString("Increases Physical Damage")
+	);
 
 	GameplayTags.Attributes_Primary_Intelligence = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("Attributes.Primary.Intelligence"),
@@ -29,10 +30,11 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	);
 
 	// Secondary Attributes
+	
 	GameplayTags.Attributes_Secondary_Armor = UGameplayTagsManager::Get().AddNativeGameplayTag(
-		FName("Attributes.Secondary.Armor"),
-		FString("Reduces damage taken, improves Block chance")
-		);
+	FName("Attributes.Secondary.Armor"),
+	FString("Reduces damage taken, improves Block chance")
+	);
 
 	GameplayTags.Attributes_Secondary_ArmorPenetration = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("Attributes.Secondary.ArmorPenetration"),
@@ -80,6 +82,7 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	);
 
 	// Input Tags
+	
 	GameplayTags.InputTag_LMB = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("InputTag.LMB"),
 	FString("Input Tag for Left Mouse Button")
@@ -110,19 +113,14 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	FString("Input Tag for 4 Key")
 	);
 
-	/*
-	 * Effects
-	 */
+	// Effects
 	
 	GameplayTags.Effects_HitReact = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("Effects.HitReact"),
 	FString("Tag added for Hit Reaction Effect")
 	);
 	
-	/*
-	 * Abilities
-	 */
-
+	// Abilities
 	GameplayTags.Abilities_Attack = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("Abilities.Attack"),
 	FString("Attack Ability Tag")
@@ -138,18 +136,14 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	FString("FireBolt Ability Tag")
 	);
 
-	/*
-	 * Cooldowns
-	 */
+	// Cooldowns
 	
 	GameplayTags.Cooldown_Fire_FireBolt = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("Cooldown.Fire.FireBolt"),
 	FString("FireBolt Cooldown Tag")
 	);
 	
-	/*
-	 * CombatSocket
-	 */
+	// Combat Sockets
 	
 	GameplayTags.CombatSocket_Weapon = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("CombatSocket.Weapon"),
@@ -171,9 +165,7 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	FString("Tail")
 	);
 	
-	/*
-	 * Montage Tags
-	 */
+	// Montage Tags
 	
 	GameplayTags.Montage_Attack_1 = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("Montage.Attack.1"),
@@ -195,9 +187,7 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	FString("Attack 4")
 	);
 
-	/*
-	 * Damage Types
-	 */
+	// Damage Types
 
 	GameplayTags.Damage = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("Damage"),
@@ -224,18 +214,14 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	FString("Physical Damage Type")
 	);
 
-	/*
-	 * Map of Damage Types to Resistances
-	 */
+	// Map of Damage Types to Resistances
 
 	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Fire, GameplayTags.Attributes_Resistance_Fire);
 	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Lightning, GameplayTags.Attributes_Resistance_Lightning);
 	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Arcane, GameplayTags.Attributes_Resistance_Arcane);
 	GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Physical, GameplayTags.Attributes_Resistance_Physical);
 	
-	/*
-	 * Resistances
-	 */
+	// Resistances
 
 	GameplayTags.Attributes_Resistance_Fire = UGameplayTagsManager::Get().AddNativeGameplayTag(
 	FName("Attributes.Resistance.Fire"),
@@ -257,5 +243,13 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	FString("Resistance to Physical Damage")
 	);
 
+	// Meta Attributes
+
+	GameplayTags.Attributes_Meta_IncomingXP = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Attributes.Meta.IncomingXP"),
+	FString("Incoming XP Meta Attribute")
+	);
+	
 	GameplayTags.bInitialized = true;
+	
 }
