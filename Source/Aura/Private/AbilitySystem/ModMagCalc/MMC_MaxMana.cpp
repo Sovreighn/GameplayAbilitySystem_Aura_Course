@@ -34,5 +34,6 @@ float UMMC_MaxMana::CalculateBaseMagnitude_Implementation(const FGameplayEffectS
 		PlayerLevel = ICombatInterface::Execute_GetPlayerLevel(Spec.GetContext().GetSourceObject());
 	}
 
-	return 50.f + 2.5f * Intelligence + 15.f * PlayerLevel;
+	// Base 25 mana, every point of Int gives 5f more mana, player level gives 2.5 more mana per level
+	return 25.f + 5.0f * Intelligence + 2.5f * PlayerLevel;
 }

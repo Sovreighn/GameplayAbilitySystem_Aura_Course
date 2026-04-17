@@ -8,9 +8,6 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCursorTargetDataSignature, const FGameplayAbilityTargetDataHandle&, DataHandle);
 
-/**
- * 
- */
 UCLASS()
 class AURA_API UTargetDataUnderCursor : public UAbilityTask
 {

@@ -25,9 +25,6 @@ struct FAuraAttributeInfo
 	float AttributeValue = 0.f;
 };
 
-/**
- * 
- */
 UCLASS()
 class AURA_API UAttributeInfo : public UDataAsset
 {
@@ -38,4 +35,5 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TArray<FAuraAttributeInfo> AttributeInformation;
+	
 };

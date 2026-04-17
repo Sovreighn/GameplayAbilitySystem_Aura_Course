@@ -19,9 +19,6 @@ struct FAuraInputAction
 	FGameplayTag InputTag = FGameplayTag();
 };
 
-/**
- * 
- */
 UCLASS()
 class AURA_API UAuraInputConfig : public UDataAsset
 {

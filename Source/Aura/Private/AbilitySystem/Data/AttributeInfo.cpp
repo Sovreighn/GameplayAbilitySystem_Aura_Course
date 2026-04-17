@@ -1,6 +1,5 @@
 // Copyright Sovreighn Gaming
 
-
 #include "AbilitySystem/Data/AttributeInfo.h"
 #include "Aura/AuraLogChannels.h"
 

@@ -1,6 +1,5 @@
 // Copyright Sovreighn Gaming
 
-
 #include "AbilitySystem/AbilityTasks/TargetDataUnderCursor.h"
 #include "AbilitySystemComponent.h"
 
