@@ -1,11 +1,11 @@
 // Copyright Sovreighn Gaming
 
 #include "AbilitySystem/Abilities/AuraFireBolt.h"
-#include "AuraGameplayTags.h"
 
 FString UAuraFireBolt::GetDescription(int32 InLevel)
 {
-	const int32 Damage = FMath::RoundHalfFromZero(GetDamageByDamageType(InLevel, FAuraGameplayTags::Get().Damage_Fire));
+	const float ScaledDamage = Damage.GetValueAtLevel(InLevel);
+	const int32 RoundedDamage = FMath::RoundHalfFromZero(ScaledDamage);
 	const float ManaCost = FMath::Abs(GetManaCost(InLevel));
 	const float Cooldown = GetCooldown(InLevel);
 
@@ -29,7 +29,7 @@ FString UAuraFireBolt::GetDescription(int32 InLevel)
 			InLevel,
 			ManaCost,
 			Cooldown,
-			Damage);
+			RoundedDamage);
 	}
 	else
 	{
@@ -53,13 +53,14 @@ FString UAuraFireBolt::GetDescription(int32 InLevel)
 			ManaCost,
 			Cooldown,
 			FMath::Min(InLevel,NumberOfProjectiles),
-			Damage);
+			RoundedDamage);
 	}
 }
 
 FString UAuraFireBolt::GetNextLevelDescription(int32 InLevel)
 {
-	const int32 Damage = FMath::RoundHalfFromZero(GetDamageByDamageType(InLevel, FAuraGameplayTags::Get().Damage_Fire));
+	const float ScaledDamage = Damage.GetValueAtLevel(InLevel);
+	const int32 RoundedDamage = FMath::RoundHalfFromZero(ScaledDamage);
 	const float ManaCost = FMath::Abs(GetManaCost(InLevel));
 	const float Cooldown = GetCooldown(InLevel);
 
@@ -83,5 +84,5 @@ FString UAuraFireBolt::GetNextLevelDescription(int32 InLevel)
 		ManaCost,
 		Cooldown,
 		FMath::Min(InLevel,NumberOfProjectiles),
-		Damage);
+		RoundedDamage);
 }
