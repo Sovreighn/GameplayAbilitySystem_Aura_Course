@@ -349,6 +349,32 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 	FName("Attributes.Meta.IncomingXP"),
 	FString("Incoming XP Meta Attribute")
 	);
+
+	// Player Tags
+	GameplayTags.Player_Block_CursorTrace = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Player.Block.CursorTrace"),
+	FString("Block tracing under the Cursor")
+	);
+
+	GameplayTags.Player_Block_InputHeld = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Player.Block.InputHeld"),
+	FString("Block Input Held callback for Input")
+	);
+
+	GameplayTags.Player_Block_InputPressed = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Player.Block.InputPressed"),
+	FString("Block Input pressed callback for Input")
+	);
+
+	GameplayTags.Player_Block_InputReleased = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Player.Block.InputReleased"),
+	FString("Block Input released callback for Input")
+	);
+
+	GameplayTags.Player_Block_NiagaraCursorSystem = UGameplayTagsManager::Get().AddNativeGameplayTag(
+	FName("Player.Block.NiagaraCursorSystem"),
+	FString("Block the spawning of the Niagara system under the Cursor")
+	);
 	
 	GameplayTags.bInitialized = true;
 	

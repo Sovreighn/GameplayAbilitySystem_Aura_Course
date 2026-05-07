@@ -63,13 +63,41 @@ void UAuraAbilitySystemComponent::AbilityInputTagHeld(const FGameplayTag& InputT
 
 void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& InputTag)
 {
+	if (!InputTag.IsValid()) { return; }
+
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InputTag) && AbilitySpec.IsActive())
+		{
+			// First mark the input as released on the spec (important!)
+			AbilitySpecInputReleased(AbilitySpec);
+
+			// Only invoke the replicated event if the ability is still active
+			// It might have ended immediately after releasing input
+			if (AbilitySpec.IsActive() && !AbilitySpec.GetAbilityInstances().IsEmpty())
+			{
+				const FGameplayAbilityActivationInfo& ActivationInfo = AbilitySpec.GetAbilityInstances().Last()->GetCurrentActivationInfoRef();
+				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, AbilitySpec.Handle,ActivationInfo.GetActivationPredictionKey());
+			}
+		}
+	}
+}
+
+void UAuraAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& InputTag)
+{
 	if (!InputTag.IsValid()) return;
 
 	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
 		if (AbilitySpec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
 		{
-			AbilitySpecInputReleased(AbilitySpec);
+			AbilitySpecInputPressed(AbilitySpec);
+			
+			if (AbilitySpec.IsActive())
+			{
+				const FGameplayAbilityActivationInfo& ActivationInfo = AbilitySpec.GetAbilityInstances().Last()->GetCurrentActivationInfoRef();
+				InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, AbilitySpec.Handle,ActivationInfo.GetActivationPredictionKey());
+			}
 		}
 	}
 }

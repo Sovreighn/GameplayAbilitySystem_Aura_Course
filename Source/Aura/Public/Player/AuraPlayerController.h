@@ -8,6 +8,7 @@
 #include "GameplayTagContainer.h"
 #include "AuraPlayerController.generated.h"
 
+class UNiagaraSystem;
 class UDamageTextComponent;
 class USplineComponent;
 class UAuraInputConfig;
@@ -17,10 +18,6 @@ class IEnemyInterface;
 struct FInputActionValue;
 class UAuraAbilitySystemComponent;
 
-
-/**
- * 
- */
 UCLASS()
 class AURA_API AAuraPlayerController : public APlayerController
 {
@@ -83,6 +80,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USplineComponent> Spline;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UNiagaraSystem> ClickNiagaraSystem;
 
 	void AutoRun();
 

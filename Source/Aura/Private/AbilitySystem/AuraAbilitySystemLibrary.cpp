@@ -318,7 +318,9 @@ FVector UAuraAbilitySystemLibrary::GetKnockbackForce(const FGameplayEffectContex
 }
 
 void UAuraAbilitySystemLibrary::GetLivePlayersWithinRadius(const UObject* WorldContextObject,
-                                                           TArray<AActor*>& OutOverlappingActors, const TArray<AActor*>& ActorsToIgnore, float Radius,
+                                                           TArray<AActor*>& OutOverlappingActors,
+                                                           const TArray<AActor*>& ActorsToIgnore,
+                                                           float Radius,
                                                            const FVector& SphereOrigin)
 {
 	FCollisionQueryParams SphereParams;
@@ -335,6 +337,39 @@ void UAuraAbilitySystemLibrary::GetLivePlayersWithinRadius(const UObject* WorldC
 				OutOverlappingActors.AddUnique(ICombatInterface::Execute_GetAvatar(Overlap.GetActor()));
 			}
 		}
+	}
+}
+
+void UAuraAbilitySystemLibrary::GetClosestTargets(int32 MaxTargets, const TArray<AActor*>& Actors, TArray<AActor*>& OutClosestTargets, const FVector& Origin)
+{
+	if (Actors.Num() <= MaxTargets)
+	{
+		OutClosestTargets = Actors;
+		return;
+	}
+
+	TArray<AActor*> ActorsToCheck = Actors;
+	int32 NumTargetsFound = 0;
+
+	while (NumTargetsFound < MaxTargets)
+	{
+		if (ActorsToCheck.Num() == 0) { break; }
+		
+		double ClosestDistance = TNumericLimits<double>::Max();
+		AActor* ClosestActor;
+		for (AActor* PotentialTargetActor : ActorsToCheck)
+		{
+			const double Distance = (PotentialTargetActor->GetActorLocation() - Origin).Length();
+			if (Distance < ClosestDistance)
+			{
+				ClosestDistance = Distance;
+				ClosestActor = PotentialTargetActor;
+			}
+		}
+
+		ActorsToCheck.Remove(ClosestActor);
+		OutClosestTargets.AddUnique(ClosestActor);
+		++NumTargetsFound;
 	}
 }
 
@@ -366,4 +401,48 @@ FGameplayEffectContextHandle UAuraAbilitySystemLibrary::ApplyDamageEffect(const 
 	DamageEffectParameters.TargetAbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data);
 	
 	return EffectContextHandle;
+}
+
+TArray<FRotator> UAuraAbilitySystemLibrary::EvenlySpacedRotators(const FVector& Forward, const FVector& Axis, float Spread, int32 NumberOfRotators)
+{
+	TArray<FRotator> Rotators;
+	
+	const FVector LeftOfSpread = Forward.RotateAngleAxis(-Spread / 2.f, Axis);
+	if (NumberOfRotators > 1)
+	{
+		const float DeltaSpread = Spread / (NumberOfRotators - 1);
+		for (int32 i = 0; i < NumberOfRotators; i++)
+		{
+			const FVector Direction = LeftOfSpread.RotateAngleAxis(DeltaSpread * i, FVector::UpVector);
+			Rotators.Add(Direction.Rotation());
+		}
+	}
+	else
+	{
+		Rotators.Add(Forward.Rotation());
+	}
+
+	return Rotators;
+}
+
+TArray<FVector> UAuraAbilitySystemLibrary::EvenlyRotatedVectors(const FVector& Forward, const FVector& Axis, float Spread, int32 NumberOfVectors)
+{
+	TArray<FVector> Vectors;
+	
+	const FVector LeftOfSpread = Forward.RotateAngleAxis(-Spread / 2.f, Axis);
+	if (NumberOfVectors > 1)
+	{
+		const float DeltaSpread = Spread / (NumberOfVectors - 1);
+		for (int32 i = 0; i < NumberOfVectors; i++)
+		{
+			const FVector Direction = LeftOfSpread.RotateAngleAxis(DeltaSpread * i, FVector::UpVector);
+			Vectors.Add(Direction);
+		}
+	}
+	else
+	{
+		Vectors.Add(Forward);
+	}
+
+	return Vectors;
 }

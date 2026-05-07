@@ -23,9 +23,35 @@ class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInte
 	GENERATED_BODY()
 
 public:
-	AAuraCharacterBase();
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TArray<FTaggedMontage> AttackMontages;
+
+	UPROPERTY(ReplicatedUsing=OnRep_Stunned, BlueprintReadOnly)
+	bool bIsStunned = false;
+
+	UPROPERTY(ReplicatedUsing=OnRep_Burned, BlueprintReadOnly)
+	bool bIsBurned = false;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	bool bIsBeingShocked = false;
+	
+	UFUNCTION(NetMulticast, Reliable)
+	virtual void MulticastHandleDeath(const FVector& DeathImpulse);
+
+	UFUNCTION()
+	virtual void OnRep_Stunned();
+
+	UFUNCTION()
+	virtual void OnRep_Burned();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	
+	AAuraCharacterBase();
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
+
+	FOnASCRegistered OnASCRegistered;
+	FOnDeath OnDeath;
 
 	/** Combat Interface */
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
@@ -39,19 +65,13 @@ public:
 	virtual int32 GetMinionCount_Implementation() override;
 	virtual void IncrementMinionCount_Implementation(int32 Amount) override;
 	virtual ECharacterClass GetCharacterClass_Implementation() override;
-	virtual FOnASCRegistered GetOnASCRegisteredDelegate() override;
-	virtual FOnDeath GetOnDeathDelegate() override;
+	virtual FOnASCRegistered& GetOnASCRegisteredDelegate() override;
+	virtual FOnDeath& GetOnDeathDelegate() override;
+	virtual USkeletalMeshComponent* GetWeapon_Implementation() override;
+	virtual void SetIsBeingShocked_Implementation(bool bInShock) override;
+	virtual bool IsBeingShocked_Implementation() const override;
 	/** End Combat Interface */
 
-	FOnASCRegistered OnASCRegistered;
-	FOnDeath OnDeath;
-	
-	UFUNCTION(NetMulticast, Reliable)
-	virtual void MulticastHandleDeath(const FVector& DeathImpulse);
-
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	TArray<FTaggedMontage> AttackMontages;
-	
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
@@ -83,24 +103,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Attributes")
 	TSubclassOf<UGameplayEffect> InitializeVitalAttributes;
 
-	virtual void BeginPlay() override;
-	virtual void InitAbilityActorInfo() {}
-	bool bDead = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	float BaseWalkSpeed = 600.f;
 
-	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const;
-	virtual void InitializeDefaultAttributes() const;
-
-	void AddCharacterAbilities();
-
-	// Dissolve Effects
-	void Dissolve();
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void StartDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void StartWeaponDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
-	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UMaterialInstance> DissolveMaterialInstance;
 
@@ -113,14 +118,32 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
 	USoundBase* DeathSound;
 
-	// Minions
-	int32 MinionCount = 0;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Class Defaults")
 	ECharacterClass CharacterClass = ECharacterClass::Warrior;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UDebuffNiagaraComponent> BurnDebuffComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UDebuffNiagaraComponent> StunDebuffComponent;
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartWeaponDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
+	
+	virtual void BeginPlay() override;
+	virtual void InitAbilityActorInfo() {}
+	virtual void StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+	virtual void InitializeDefaultAttributes() const;
+
+	void AddCharacterAbilities();
+	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const;
+
+	bool bDead = false;
+	void Dissolve();
+	int32 MinionCount = 0;
 	
 private:
 	UPROPERTY(EditAnywhere, Category = "Abilities")

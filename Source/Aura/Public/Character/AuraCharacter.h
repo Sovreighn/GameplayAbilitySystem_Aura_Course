@@ -17,10 +17,16 @@ class AURA_API AAuraCharacter : public AAuraCharacterBase, public IPlayerInterfa
 	GENERATED_BODY()
 
 public:
-	AAuraCharacter();
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UNiagaraComponent> LevelUpNiagaraComponent;
+	
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
+	virtual void OnRep_Stunned() override;
+	virtual void OnRep_Burned() override;
 
+	AAuraCharacter();
+	
 	/** Player Interface */
 	virtual void AddToXp_Implementation(int32 InXP) override;
 	virtual void LevelUp_Implementation() override;
@@ -39,18 +45,16 @@ public:
 	virtual int32 GetPlayerLevel_Implementation() override;
 	/** end Combat Interface */
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UNiagaraComponent> LevelUpNiagaraComponent;
-	
 private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UCameraComponent> TopDownCameraComponent;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USpringArmComponent> CameraBoom;
-	
-	virtual void InitAbilityActorInfo() override;
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastLevelUpParticles() const;
+	
+	virtual void InitAbilityActorInfo() override;
+	
 };

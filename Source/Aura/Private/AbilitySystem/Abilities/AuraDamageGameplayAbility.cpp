@@ -47,3 +47,8 @@ FDamageEffectParameters UAuraDamageGameplayAbility::MakeDamageEffectParamsFromCl
 	
 	return Params;
 }
+
+float UAuraDamageGameplayAbility::GetDamageAtLevel() const
+{
+	return Damage.GetValueAtLevel(GetAbilityLevel());
+}

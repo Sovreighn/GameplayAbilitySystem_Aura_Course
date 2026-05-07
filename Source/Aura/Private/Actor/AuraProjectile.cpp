@@ -2,14 +2,15 @@
 
 
 #include "Actor/AuraProjectile.h"
-
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "Aura/Aura.h"
 #include "Components/AudioComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
+#include "GameFramework/Character.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -37,6 +38,15 @@ void AAuraProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Prevent Collisions between this projectile and its Instigator
+	Sphere->IgnoreActorWhenMoving(GetInstigator(), true);
+	ACharacter* InstigatorCharacter = Cast<ACharacter>(GetInstigator());
+	// Collision Detection was on Capsule
+	InstigatorCharacter->GetCapsuleComponent()->IgnoreActorWhenMoving(this, true);
+	// Collision Detection was on Mesh
+	InstigatorCharacter->GetMesh()->IgnoreActorWhenMoving(this, true);
+
+	SetReplicateMovement(true);
 	SetLifeSpan(Lifespan);
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AAuraProjectile::OnSphereOverlap);
 	LoopingSoundComponent = UGameplayStatics::SpawnSoundAttached(LoopingSound, GetRootComponent());
@@ -47,12 +57,23 @@ void AAuraProjectile::OnHit()
 	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
 
-	if (LoopingSoundComponent) LoopingSoundComponent->Stop();
+	if (LoopingSoundComponent)
+	{
+		LoopingSoundComponent->Stop();
+		LoopingSoundComponent->DestroyComponent();
+	}
+	
 	bHit = true;
 }
 
 void AAuraProjectile::Destroyed()
 {
+	if (LoopingSoundComponent)
+	{
+		LoopingSoundComponent->Stop();
+		LoopingSoundComponent->DestroyComponent();
+	}
+	
 	if (!bHit && !HasAuthority()) { OnHit(); }
 	Super::Destroyed();
 }
@@ -60,8 +81,10 @@ void AAuraProjectile::Destroyed()
 void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	if (!IsValid(DamageEffectParameters.SourceAbilitySystemComponent)) { return; }
 	AActor* SourceAvatarActor = DamageEffectParameters.SourceAbilitySystemComponent->GetAvatarActor();
 	if (SourceAvatarActor == OtherActor) { return; }
+	if (OtherActor == GetInstigator()) { return; }
 	if (!UAuraAbilitySystemLibrary::IsNotFriend(SourceAvatarActor, OtherActor)) { return; }
 	if (!bHit) { OnHit(); }
 	
