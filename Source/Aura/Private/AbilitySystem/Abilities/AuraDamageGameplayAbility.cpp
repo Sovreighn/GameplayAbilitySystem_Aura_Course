@@ -12,7 +12,10 @@ void UAuraDamageGameplayAbility::CauseDamage(AActor* TargetActor)
 	GetAbilitySystemComponentFromActorInfo()->ApplyGameplayEffectSpecToTarget(*DamageSpecHandle.Data.Get(), UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor));
 }
 
-FDamageEffectParameters UAuraDamageGameplayAbility::MakeDamageEffectParamsFromClassDefaults(AActor* TargetActor) const
+FDamageEffectParameters UAuraDamageGameplayAbility::MakeDamageEffectParamsFromClassDefaults(
+	AActor* TargetActor, FVector InRadialDamageOrigin, bool bOverrideKnockbackDirection,
+	FVector KnockbackDirectionOverride, bool bOverrideDeathImpulse, FVector DeathImpulseDirectionOverride,
+	bool bOverridePitch, float PitchOverride) const
 {
 	FDamageEffectParameters Params;
 	Params.WorldContextObject = GetAvatarActorFromActorInfo();
@@ -30,19 +33,64 @@ FDamageEffectParameters UAuraDamageGameplayAbility::MakeDamageEffectParamsFromCl
 	Params.KnockbackForceMagnitude = KnockbackForceMagnitude;
 	Params.KnockbackChance = KnockbackChance;
 
-	// This for Enemies to cause Knockback and DeathImpulse effects, this is setting some defaults
+	// Determine if there is a Knockback based on the KnockbackChance
+	const bool bKnockback = FMath::RandRange(1,100) < Params.KnockbackChance;
+	
 	if (IsValid(TargetActor))
 	{
+		// To set the Knockback/DeathImpulse direction to push enemies directly away from the Player 
 		FRotator Rotation = (TargetActor->GetActorLocation() - GetAvatarActorFromActorInfo()->GetActorLocation()).Rotation();
-		Rotation.Roll = 15.f;
 		const FVector ToTarget = Rotation.Vector();
-		const bool bKnockback = FMath::RandRange(1,100) < Params.KnockbackChance;
-		if (bKnockback)
+		
+		if (bOverridePitch)
+		{
+			Rotation.Pitch = PitchOverride;
+		}
+		
+		if (!bOverrideKnockbackDirection && bKnockback)
 		{
 			Params.KnockbackForce = ToTarget * KnockbackForceMagnitude;
 		}
+
+		if (!bOverrideDeathImpulse)
+		{
+			Params.DeathImpulse = ToTarget * DeathImpulseMagnitude;
+		}
+	}
+
+	// To set the Knockback/DeathImpulse direction to push enemies in a variable Direction
+	if (bOverrideKnockbackDirection && bKnockback)
+	{
+		KnockbackDirectionOverride.Normalize();
+		Params.KnockbackForce = KnockbackDirectionOverride * KnockbackForceMagnitude;
 		
-		Params.DeathImpulse = ToTarget * DeathImpulseMagnitude;
+		if (bOverridePitch)
+		{
+			FRotator KnockbackRotation = KnockbackDirectionOverride.Rotation();
+			KnockbackRotation.Pitch = PitchOverride;
+			Params.KnockbackForce = KnockbackRotation.Vector() * KnockbackForceMagnitude;
+		}
+	}
+
+	if (bOverrideDeathImpulse)
+	{
+		DeathImpulseDirectionOverride.Normalize();
+		Params.DeathImpulse = DeathImpulseDirectionOverride * DeathImpulseMagnitude;
+
+		if (bOverridePitch)
+		{
+			FRotator DeathImpulseRotation = DeathImpulseDirectionOverride.Rotation();
+			DeathImpulseRotation.Pitch = PitchOverride;
+			Params.DeathImpulse = DeathImpulseRotation.Vector() * DeathImpulseMagnitude;
+		}
+	}
+
+	if (bIsRadialDamage)
+	{
+		Params.bIsRadialDamage = bIsRadialDamage;
+		Params.RadialDamageOrigin = InRadialDamageOrigin;
+		Params.RadialDamageInnerRadius = RadialDamageInnerRadius;
+		Params.RadialDamageOuterRadius = RadialDamageOuterRadius;
 	}
 	
 	return Params;

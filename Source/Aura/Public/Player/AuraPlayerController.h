@@ -8,6 +8,7 @@
 #include "GameplayTagContainer.h"
 #include "AuraPlayerController.generated.h"
 
+class AMagicCircle;
 class UNiagaraSystem;
 class UDamageTextComponent;
 class USplineComponent;
@@ -29,6 +30,12 @@ public:
 
 	UFUNCTION(Client, Reliable)
 	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit);
+
+	UFUNCTION(BlueprintCallable)
+	void ShowMagicCircle(UMaterialInterface* DecalMaterial = nullptr);
+
+	UFUNCTION(BlueprintCallable)
+	void HideMagicCircle();
 	
 protected:
 	virtual void BeginPlay() override;
@@ -43,38 +50,10 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> ShiftAction;
-
-	void ShiftPressed() { bShiftKeyDown = true; };
-	void ShiftReleased() { bShiftKeyDown = false; };
-	bool bShiftKeyDown = false;
-	
-	void Move(const FInputActionValue& InputActionValue);
-
-	void CursorTrace();
-	
-	IEnemyInterface* LastActor;
-	IEnemyInterface* ThisActor;
-
-	FHitResult CursorHit;
-	
-	void AbilityInputTagPressed(FGameplayTag InputTag);
-	void AbilityInputTagReleased(FGameplayTag InputTag);
-	void AbilityInputTagHeld(FGameplayTag InputTag);
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	TObjectPtr<UAuraInputConfig> InputConfig;
 
-	UPROPERTY()
-	TObjectPtr<UAuraAbilitySystemComponent> AuraAbilitySystemComponent;
-
-	UAuraAbilitySystemComponent* GetASC();
-
-	FVector CachedDestination = FVector::ZeroVector;
-	float TimeFollowingCursor = 0.f;
-	float ShortPressThreshold = 0.5f;
-	bool bAutoRunning = false;
-	bool bTargeting = false;
-	
 	UPROPERTY(EditDefaultsOnly)
 	float AutoRunAcceptanceRadius = 50.0f;
 
@@ -83,10 +62,38 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<UNiagaraSystem> ClickNiagaraSystem;
-
-	void AutoRun();
-
+	
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<UDamageTextComponent> DamageTextComponentClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AMagicCircle> MagicCircleClass;
+
+	UPROPERTY()
+	TObjectPtr<AMagicCircle> MagicCircle;
+
+	UPROPERTY()
+	TObjectPtr<UAuraAbilitySystemComponent> AuraAbilitySystemComponent;
+	
+	FVector CachedDestination = FVector::ZeroVector;
+	float TimeFollowingCursor = 0.f;
+	float ShortPressThreshold = 0.5f;
+	bool bAutoRunning = false;
+	bool bTargeting = false;
+	bool bShiftKeyDown = false;
+	FHitResult CursorHit;
+	IEnemyInterface* LastActor;
+	IEnemyInterface* ThisActor;
+
+	UAuraAbilitySystemComponent* GetASC();
+	void AbilityInputTagPressed(FGameplayTag InputTag);
+	void AbilityInputTagReleased(FGameplayTag InputTag);
+	void AbilityInputTagHeld(FGameplayTag InputTag);
+	void ShiftPressed() { bShiftKeyDown = true; };
+	void ShiftReleased() { bShiftKeyDown = false; };
+	void Move(const FInputActionValue& InputActionValue);
+	void CursorTrace();
+	void AutoRun();
+	void UpdateMagicCircleLocation();
 	
 };
