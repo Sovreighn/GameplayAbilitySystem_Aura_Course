@@ -17,8 +17,6 @@ class AURA_API AAuraProjectile : public AActor
 	GENERATED_BODY()
 	
 public:	
-	AAuraProjectile();
-
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 
@@ -27,16 +25,25 @@ public:
 
 	UPROPERTY()
 	TObjectPtr<USceneComponent> HomingTargetSceneComponent;
+
+	AAuraProjectile();
 	
 protected:
-	virtual void BeginPlay() override;
-	void OnHit();
-
+	UPROPERTY()
+	TObjectPtr<UAudioComponent> LoopingSoundComponent;
+	
 	UFUNCTION()
-	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	virtual void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	UFUNCTION(BlueprintCallable)
+	virtual void OnHit();
+	
 	virtual void Destroyed() override;
+	virtual void BeginPlay() override;
 
+	bool IsValidOverlap(AActor* OtherActor);
+	bool bHit;
+	
 private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USphereComponent> Sphere;
@@ -50,12 +57,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USoundBase> LoopingSound;
 
-	UPROPERTY()
-	TObjectPtr<UAudioComponent> LoopingSoundComponent;
-
 	UPROPERTY(EditDefaultsOnly)
 	float Lifespan = 15.f;
-	
-	bool bHit;
 	
 };

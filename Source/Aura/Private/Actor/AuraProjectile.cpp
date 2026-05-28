@@ -1,6 +1,5 @@
 // Copyright Sovreighn Gaming
 
-
 #include "Actor/AuraProjectile.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
@@ -40,16 +39,29 @@ void AAuraProjectile::BeginPlay()
 
 	// Prevent Collisions between this projectile and its Instigator
 	Sphere->IgnoreActorWhenMoving(GetInstigator(), true);
-	ACharacter* InstigatorCharacter = Cast<ACharacter>(GetInstigator());
-	// Collision Detection was on Capsule
-	InstigatorCharacter->GetCapsuleComponent()->IgnoreActorWhenMoving(this, true);
-	// Collision Detection was on Mesh
-	InstigatorCharacter->GetMesh()->IgnoreActorWhenMoving(this, true);
 
+	if (ACharacter* InstigatorCharacter = Cast<ACharacter>(GetInstigator()))
+	{
+		// Collision Detection was on Capsule
+		InstigatorCharacter->GetCapsuleComponent()->IgnoreActorWhenMoving(this, true);
+		// Collision Detection was on Mesh
+		InstigatorCharacter->GetMesh()->IgnoreActorWhenMoving(this, true);
+	}
+	
 	SetReplicateMovement(true);
 	SetLifeSpan(Lifespan);
 	Sphere->OnComponentBeginOverlap.AddDynamic(this, &AAuraProjectile::OnSphereOverlap);
 	LoopingSoundComponent = UGameplayStatics::SpawnSoundAttached(LoopingSound, GetRootComponent());
+}
+
+bool AAuraProjectile::IsValidOverlap(AActor* OtherActor)
+{
+	if (DamageEffectParameters.SourceAbilitySystemComponent == nullptr) { return false; }
+	AActor* SourceAvatarActor = DamageEffectParameters.SourceAbilitySystemComponent->GetAvatarActor();
+	if (SourceAvatarActor == OtherActor) { return false; }
+	if (OtherActor == GetInstigator()) { return false; }
+	if (!UAuraAbilitySystemLibrary::IsNotFriend(SourceAvatarActor, OtherActor)) { return false; }
+	return true;
 }
 
 void AAuraProjectile::OnHit()
@@ -78,14 +90,15 @@ void AAuraProjectile::Destroyed()
 	Super::Destroyed();
 }
 
-void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AAuraProjectile::OnSphereOverlap(
+	UPrimitiveComponent* OverlappedComponent,
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex,
+	bool bFromSweep,
+	const FHitResult& SweepResult)
 {
-	if (!IsValid(DamageEffectParameters.SourceAbilitySystemComponent)) { return; }
-	AActor* SourceAvatarActor = DamageEffectParameters.SourceAbilitySystemComponent->GetAvatarActor();
-	if (SourceAvatarActor == OtherActor) { return; }
-	if (OtherActor == GetInstigator()) { return; }
-	if (!UAuraAbilitySystemLibrary::IsNotFriend(SourceAvatarActor, OtherActor)) { return; }
+	if (!IsValidOverlap(OtherActor)) { return; }
 	if (!bHit) { OnHit(); }
 	
 	if (HasAuthority())
